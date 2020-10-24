@@ -43,7 +43,7 @@ void visited_init(int **map, char **fixed, char **visited, int size)
 	}
 }
 
-void row_init(int **map, int size, int row_num, char **visited)
+void row_init(int **map, int size, int row_num, char **fixed)
 {
 	int m_index;
 	int v_index;
@@ -55,9 +55,9 @@ void row_init(int **map, int size, int row_num, char **visited)
 		if (map[row_num][index] == 0)
 			while (v_index < size)
 			{
-				if (visited[row_num][v_index] == '0')
+				if (fixed[row_num][v_index] == '0')
 				{
-					visited[row_num][v_index] = '1';
+					fixed[row_num][v_index] = '1';
 					map[row_num][index] = v_index + 1; //visited는 index가 1칸씩 밀려있다.
 				}
 			}
@@ -132,22 +132,22 @@ void swap(int *arr, int i, int j)
 	arr[i] = arr[j];
 	arr[j] = tmp;
 }
-int next_permutation(int **map, char **visited, int size, int row_num)
+int next_permutation(int **map, char **fixed, int size, int row_num)
 {
 	int *arr;
 	int n;
 	int i;
 	int threshold;
 
-	n = arr_size(map, visited, size, row_num);
-	arr = making_arr(map, visited, size, row_num);
+	n = arr_size(map, fixed, size, row_num);
+	arr = making_arr(map, fixed, size, row_num);
 	i = n - 1;
 
 	while (i > 0 && arr[i - 1] >= arr[i])
 		i--;
 	if (i == 0)
 	{
-		row_init(map, size, row_num, visited);
+		row_init(map, size, row_num, fixed);
 		return (-1);
 	}
 	threshold = i;
@@ -163,22 +163,42 @@ int next_permutation(int **map, char **visited, int size, int row_num)
 }
 
 //fixed 와 vistied 를 통해 row 생성
-void rowmaker(int **map, char **fixed, int row_num, int size)
+void rowmaker(int **map, char **fixed, int size)
 {
 	int index;
 	char **visited;
+	int **init;
+	int i;
+	int j;
 
+	i = 0;
+	j = 0;
 	index = 0;
 	visited = (char **)malloc(size);
+	init = (int **)malloc(size * 4);
 	while (index < size) /* init visited*/
 	{
 		visited[index] = (char *)malloc(size);
+		init[index] = (int *)malloc(4 * size);
 		index++;
 	}
 	index = 0;
 	visited_init(map, fixed, visited, size); /*visited초기화*/
-	while (index < n)
+	while (index < size)
 	{
+		row_init(map, size, index, fixed);
+		while (row_check_L(map, index, size, L) == 1 && row_check_R(map, index, size, R) == 1)
+			next_permutation(map, fixed, size, index);
+		index++;
+	}
+	while (i < size) //초기 init 생성 완료.
+	{
+		while (j < size)
+		{
+			init[i][j] = map[i][j];
+			j++;
+		}
+		i++;
 	}
 }
 
